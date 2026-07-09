@@ -1,0 +1,13 @@
+# Mỗi dòng 1 sản phẩm, định dạng:
+# <url>, <category_id>, [emoji], [tag], [price_override]
+#
+# - url: link Shopee (link ngắn affiliate của bạn hoặc link gốc đều được)
+# - category_id: phải khớp với id trong CONFIG.categories của index.html
+# - emoji: icon fallback nếu ảnh lỗi (tuỳ chọn, mặc định 🛍️)
+# - tag: "hot" / "new" / "limited" hoặc để trống
+# - price_override: điền số (vd: 199000) nếu script không tự lấy được giá
+#
+# Xoá 2 dòng ví dụ bên dưới, thay bằng link thật của bạn.
+
+https://s.shopee.vn/3B5PGyz8YC, hot, 🔥, hot,
+https://s.shopee.vn/an_redir?origin_link=https%3A%2F%2Fshopee.vn%2Fproduct%2F729014007%2F24491019937, home, 🏠, ,

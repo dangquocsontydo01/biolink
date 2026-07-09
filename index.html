@@ -455,6 +455,23 @@ body {
   overflow: hidden;
 }
 
+.link-price {
+  color: var(--coral-deep);
+  font-weight: 700;
+  font-size: 13px;
+  margin-top: 2px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+}
+
+.sync-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  color: var(--ink-mute);
+  margin-top: 2px;
+}
+
 .link-sub {
   font-size: 12.5px;
   color: var(--ink-soft);
@@ -702,7 +719,7 @@ const CONFIG = {
 /* ============================================================
    RENDER
    ============================================================ */
-(function init() {
+async function init() {
   // Profile
   const p = CONFIG.profile;
   document.getElementById('displayName').textContent = p.name;
@@ -784,9 +801,41 @@ const CONFIG = {
     catBar.appendChild(pill);
   });
 
-  // Links
+  // Links — merge CONFIG.links (thủ công) với products.json (do sync_products.py tạo)
+  const syncedLinks = await loadSyncedProducts();
+  const allLinks = mergeLinks(CONFIG.links, syncedLinks);
+  renderLinks(allLinks);
+
+  updateLinkCount('all');
+}
+
+/* ============================================================
+   TỰ ĐỘNG NẠP SẢN PHẨM TỪ products.json (do sync_products.py sinh ra)
+   ============================================================ */
+async function loadSyncedProducts() {
+  try {
+    const res = await fetch('products.json', { cache: 'no-store' });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch {
+    // Không có products.json (vd: mở file trực tiếp bằng file://) → bỏ qua, chỉ dùng CONFIG.links
+    return [];
+  }
+}
+
+// Gộp 2 nguồn, ưu tiên bản mới nhất từ products.json nếu trùng URL với CONFIG.links
+function mergeLinks(manual, synced) {
+  const byUrl = new Map();
+  manual.forEach(l => byUrl.set(l.url, l));
+  synced.forEach(l => byUrl.set(l.url, { ...byUrl.get(l.url), ...l }));
+  return Array.from(byUrl.values());
+}
+
+function renderLinks(links) {
   const list = document.getElementById('linkList');
-  CONFIG.links.forEach(l => {
+  list.innerHTML = '';
+  links.forEach(l => {
     const card = document.createElement('a');
     card.className = 'link-card';
     card.href = buildOutboundUrl(l.url);
@@ -802,6 +851,10 @@ const CONFIG = {
       ? `<span class="link-tag ${l.tag}">${tagLabel(l.tag)}</span>`
       : '';
 
+    const priceHtml = l.price
+      ? `<div class="link-price">${l.price}</div>`
+      : '';
+
     card.innerHTML = `
       ${thumbHtml}
       <div class="link-body">
@@ -810,6 +863,7 @@ const CONFIG = {
           ${tagHtml}
           <span>${l.sub || ''}</span>
         </div>
+        ${priceHtml}
       </div>
       <div class="link-arrow">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
@@ -818,9 +872,9 @@ const CONFIG = {
     card.addEventListener('click', () => track('link', l.title, l.url));
     list.appendChild(card);
   });
+}
 
-  updateLinkCount('all');
-})();
+init();
 
 function tagLabel(tag) {
   return ({ hot: 'HOT', new: 'MỚI', limited: 'GIỚI HẠN' })[tag] || tag.toUpperCase();
