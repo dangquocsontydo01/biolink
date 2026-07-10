@@ -7,7 +7,27 @@
 # - tag: "hot" / "new" / "limited" hoặc để trống
 # - price_override: điền số (vd: 199000) nếu script không tự lấy được giá
 #
-# Xoá 2 dòng ví dụ bên dưới, thay bằng link thật của bạn.
 
+# === SẢN PHẨM CŨ (từ CONFIG.links) ===
 https://s.shopee.vn/3B5PGyz8YC, hot, 🔥, hot,
 https://s.shopee.vn/an_redir?origin_link=https%3A%2F%2Fshopee.vn%2Fproduct%2F729014007%2F24491019937, home, 🏠, ,
+
+# === SẢN PHẨM MỚI THÊM 2026-07-10 ===
+https://s.shopee.vn/9pcNfthxp3, beauty, 💆, hot, 198000
+https://s.shopee.vn/50X7uyRySn, beauty, 🌿, hot, 65000
+https://s.shopee.vn/3g1kKUBaIJ, all, 🛍️, ,
+https://s.shopee.vn/3g1kKSqXXO, fashion, 🧥, hot, 120000
+https://s.shopee.vn/4VarJxRtxd, all, 🛍️, ,
+https://s.shopee.vn/6pym6Dg6Ho, home, 🏠, hot, 25000
+https://s.shopee.vn/1gGfwhmUd8, home, 🏠, new, 28000
+https://s.shopee.vn/5L9yJQJCB1, home, 🍱, ,
+https://s.shopee.vn/8V705DjcYI, tech, 🔋, hot, 150000
+https://s.shopee.vn/2g9D8SY3Zn, home, 🏠, ,
+https://s.shopee.vn/W4iYS3FUX, home, ✨, hot, 59000
+https://s.shopee.vn/2qSdKgEKxm, all, 🛍️, ,
+https://s.shopee.vn/2BCwXQu2iG, home, 🧊, new, 54000
+https://s.shopee.vn/6VLvhKjQML, all, 🛍️, ,
+https://s.shopee.vn/30m3WskQzf, beauty, 💆, hot, 250000
+https://s.shopee.vn/18RxLrAjY, fashion, ⛑️, new, 139000
+https://s.shopee.vn/2LWMjcnmRB, home, ☕, ,
+https://s.shopee.vn/LlILvZw9U, all, 🛍️, ,
