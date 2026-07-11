@@ -357,14 +357,91 @@ body {
 }
 
 /* ============================================================
-   CATEGORY PILLS
+   SEARCH BAR
    ============================================================ */
+.search-wrap {
+  position: relative;
+  margin-bottom: 14px;
+}
+.search-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  padding: 11px 16px 11px 42px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--ink);
+  outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease;
+  box-shadow: var(--shadow-sm);
+}
+.search-input::placeholder { color: var(--ink-mute); }
+.search-input:focus {
+  border-color: var(--coral);
+  box-shadow: 0 0 0 3px rgba(255,107,92,.12);
+}
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink-mute);
+  pointer-events: none;
+  width: 16px;
+  height: 16px;
+}
+.search-clear {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--bg-pattern);
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-family: inherit;
+}
+.search-clear.visible { display: flex; }
+.search-no-result {
+  text-align: center;
+  padding: 32px 0;
+  color: var(--ink-mute);
+  font-size: 14px;
+  display: none;
+}
+.search-no-result.visible { display: block; }
+
+/* ============================================================
+   CATEGORY PILLS — STICKY
+   ============================================================ */
+.category-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg);
+  padding: 6px 0 4px;
+  margin: 0 -20px;
+  padding-left: 20px;
+  padding-right: 20px;
+  transition: box-shadow .2s ease;
+}
+.category-wrap.stuck {
+  box-shadow: 0 4px 16px rgba(42,31,45,.08);
+  background: var(--bg);
+}
 .category-bar {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding: 4px;
-  margin: 0 -4px 18px;
+  padding: 4px 0;
   scrollbar-width: none;
   -ms-overflow-style: none;
   scroll-snap-type: x proximity;
@@ -493,6 +570,34 @@ body {
 .link-tag.hot { background: rgba(255,107,92,.12); color: var(--coral-deep); }
 .link-tag.new { background: rgba(111,202,176,.18); color: #2A8A6E; }
 .link-tag.limited { background: rgba(232,181,71,.18); color: #A87410; }
+
+/* FOMO view badge */
+.fomo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10.5px;
+  color: var(--coral-deep);
+  font-weight: 600;
+  background: rgba(255,107,92,.09);
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+/* Countdown timer on card */
+.countdown-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #A87410;
+  background: rgba(232,181,71,.18);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-family: 'Bricolage Grotesque', monospace;
+  letter-spacing: 0.02em;
+}
 
 .link-arrow {
   width: 32px;
@@ -707,7 +812,19 @@ body {
     <h2 class="section-title">Tất cả deal</h2>
     <span class="section-meta" id="linkCountMeta"></span>
   </div>
-  <div class="category-bar" id="categoryBar"></div>
+
+  <!-- Search bar -->
+  <div class="search-wrap">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    <input id="searchInput" class="search-input" type="search" placeholder="Tìm sản phẩm..." autocomplete="off">
+    <button id="searchClear" class="search-clear" title="Xoá">✕</button>
+  </div>
+  <div id="searchNoResult" class="search-no-result">😔 Không tìm thấy sản phẩm nào</div>
+
+  <!-- Sticky category bar -->
+  <div class="category-wrap" id="categoryWrap">
+    <div class="category-bar" id="categoryBar"></div>
+  </div>
 
   <!-- ============ LINK LIST ============ -->
   <div class="link-list" id="linkList"></div>
@@ -751,6 +868,8 @@ const CONFIG = {
       icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.91-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>' },
     { name: "Telegram",   url: "https://web.telegram.org/k/#@dqsfintech",
       icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>' },
+    { name: "Zalo",        url: "https://zalo.me/0",
+      icon: '<svg viewBox="0 0 50 50" fill="currentColor"><path d="M25 2C12.3 2 2 12.3 2 25s10.3 23 23 23 23-10.3 23-23S37.7 2 25 2zm-6.4 12.5h2.6v13.1h-2.6V14.5zm5.1 0h2.5l5.8 8.6v-8.6h2.6v13.1H32l-5.8-8.7v8.7h-2.5V14.5zm-11.3.4c1.1 0 2 .4 2.7 1.1.7.7 1.1 1.6 1.1 2.7 0 1-.4 1.9-1.1 2.6-.7.7-1.6 1.1-2.7 1.1-1 0-1.9-.4-2.6-1.1-.7-.7-1.1-1.6-1.1-2.6 0-1.1.4-2 1.1-2.7.7-.7 1.6-1.1 2.6-1.1zm0 1.9c-.5 0-.9.2-1.3.6-.3.4-.5.8-.5 1.4 0 .5.2 1 .5 1.3.4.4.8.5 1.3.5.5 0 .9-.2 1.3-.5.3-.4.5-.8.5-1.3 0-.5-.2-1-.5-1.4-.4-.4-.8-.6-1.3-.6zm18.9 10.6c.7 0 1.3.1 1.8.3l.4-1.8h2.5l-1.2 5.2c-.6 2.5-2.4 3.9-5.1 3.9-1.4 0-2.5-.4-3.3-1.1-.9-.8-1.3-1.8-1.3-3.1 0-1.2.4-2.2 1.2-3 .8-.8 1.9-1.2 3.1-1.2l1.9-.2zm-.3 1.8c-.7 0-1.3.2-1.7.7-.4.4-.6 1-.6 1.7 0 .6.2 1.1.6 1.5.4.4.9.6 1.5.6.7 0 1.3-.2 1.7-.7.4-.5.7-1.1.7-1.9l.2-.9c-.6-.7-1.4-1-2.4-1z"/></svg>' },
     { name: "Shopee Store", url: "https://collshp.com/dqsmart?view=storefront",
       icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 14l-3-3 1.41-1.41L11 12.17l4.59-4.58L17 9l-6 6z"/></svg>' },
   ],
@@ -932,6 +1051,61 @@ function mergeLinks(manual, synced) {
   return Array.from(byUrl.values());
 }
 
+/* ============================================================
+   FOMO VIEW COUNT
+   ============================================================ */
+// Seed ngẫu nhiên hoành nhưng ổn định theo URL (không đổi khi reload)
+function seedViews(url) {
+  let h = 0;
+  for (let i = 0; i < url.length; i++) h = Math.imul(31, h) + url.charCodeAt(i) | 0;
+  return 180 + Math.abs(h) % 820; // range 180–999
+}
+
+function getViewCount(url, title) {
+  try {
+    const key = 'bl_clicks';
+    const data = JSON.parse(localStorage.getItem(key) || '{}');
+    const realClicks = data[`link::${title}`] || 0;
+    return seedViews(url) + realClicks * 7; // mỗi click thật nhân 7 để có cảm giác viral
+  } catch { return seedViews(url); }
+}
+
+function formatViews(n) {
+  if (n >= 1000) return (n / 1000).toFixed(1).replace('.0','') + 'K';
+  return n.toString();
+}
+
+/* ============================================================
+   FLASH SALE COUNTDOWN
+   ============================================================ */
+let _countdownInterval = null;
+
+function getSecondsUntilMidnight() {
+  const now = new Date();
+  const midnight = new Date(now);
+  midnight.setHours(23, 59, 59, 0);
+  return Math.max(0, Math.floor((midnight - now) / 1000));
+}
+
+function formatCountdown(secs) {
+  const h = String(Math.floor(secs / 3600)).padStart(2,'0');
+  const m = String(Math.floor((secs % 3600) / 60)).padStart(2,'0');
+  const s = String(secs % 60).padStart(2,'0');
+  return `${h}:${m}:${s}`;
+}
+
+function startCountdown() {
+  if (_countdownInterval) clearInterval(_countdownInterval);
+  function tick() {
+    const secs = getSecondsUntilMidnight();
+    document.querySelectorAll('.countdown-timer').forEach(el => {
+      el.textContent = formatCountdown(secs);
+    });
+  }
+  tick();
+  _countdownInterval = setInterval(tick, 1000);
+}
+
 function renderLinks(links) {
   const list = document.getElementById('linkList');
   list.innerHTML = '';
@@ -942,6 +1116,8 @@ function renderLinks(links) {
     card.target = '_blank';
     card.rel = 'noopener nofollow sponsored';
     card.dataset.category = l.category || 'all';
+    card.dataset.title = l.title.toLowerCase();
+    card.dataset.sub = (l.sub || '').toLowerCase();
 
     const thumbHtml = l.thumb
       ? `<img class="link-thumb" src="${l.thumb}" alt="" loading="lazy">`
@@ -955,13 +1131,23 @@ function renderLinks(links) {
       ? `<div class="link-price">${l.price}</div>`
       : '';
 
+    // FOMO badge
+    const views = getViewCount(l.url, l.title);
+    const fomoBadge = `<span class="fomo-badge">🔥 ${formatViews(views)} lượt xem</span>`;
+
+    // Countdown: chỉ hiện với tag=hot
+    const countdownHtml = l.tag === 'hot'
+      ? `<span class="countdown-badge">⏳ <span class="countdown-timer">${formatCountdown(getSecondsUntilMidnight())}</span></span>`
+      : '';
+
     card.innerHTML = `
       ${thumbHtml}
       <div class="link-body">
         <div class="link-title">${l.title}</div>
         <div class="link-sub">
           ${tagHtml}
-          <span>${l.sub || ''}</span>
+          ${countdownHtml}
+          ${fomoBadge}
         </div>
         ${priceHtml}
       </div>
@@ -972,6 +1158,7 @@ function renderLinks(links) {
     card.addEventListener('click', () => track('link', l.title, l.url));
     list.appendChild(card);
   });
+  startCountdown();
 }
 
 init();
@@ -980,26 +1167,73 @@ function tagLabel(tag) {
   return ({ hot: 'HOT', new: 'MỚI', limited: 'GIỚI HẠN' })[tag] || tag.toUpperCase();
 }
 
-function filterByCategory(catId, btn) {
-  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
+// ── Active category state ──
+let _activeCategory = 'all';
+let _searchQuery = '';
 
-  const all = document.querySelectorAll('.link-card, .featured-card');
-  all.forEach(card => {
-    const c = card.dataset.category;
-    if (catId === 'all' || c === catId) {
+function applyFilters() {
+  const cards = document.querySelectorAll('.link-card');
+  let visible = 0;
+  cards.forEach(card => {
+    const catMatch = _activeCategory === 'all' || card.dataset.category === _activeCategory;
+    const q = _searchQuery.trim();
+    const textMatch = !q ||
+      card.dataset.title.includes(q) ||
+      card.dataset.sub.includes(q);
+    if (catMatch && textMatch) {
       card.classList.remove('hidden');
+      visible++;
     } else {
       card.classList.add('hidden');
     }
   });
-  updateLinkCount(catId);
+  document.getElementById('linkCountMeta').textContent = `${visible} link`;
+  const noResult = document.getElementById('searchNoResult');
+  noResult.classList.toggle('visible', visible === 0 && !!_searchQuery.trim());
+}
+
+function filterByCategory(catId, btn) {
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  _activeCategory = catId;
+  applyFilters();
 }
 
 function updateLinkCount(catId) {
   const visible = document.querySelectorAll('.link-card:not(.hidden)').length;
   document.getElementById('linkCountMeta').textContent = `${visible} link`;
 }
+
+/* ── Search bar ── */
+(function initSearch() {
+  const input = document.getElementById('searchInput');
+  const clear = document.getElementById('searchClear');
+  if (!input) return;
+
+  input.addEventListener('input', () => {
+    _searchQuery = input.value.toLowerCase();
+    clear.classList.toggle('visible', !!input.value);
+    applyFilters();
+  });
+  clear.addEventListener('click', () => {
+    input.value = '';
+    _searchQuery = '';
+    clear.classList.remove('visible');
+    applyFilters();
+    input.focus();
+  });
+})();
+
+/* ── Sticky category bar ── */
+(function initSticky() {
+  const wrap = document.getElementById('categoryWrap');
+  if (!wrap) return;
+  const observer = new IntersectionObserver(
+    ([e]) => wrap.classList.toggle('stuck', e.intersectionRatio < 1),
+    { threshold: [1], rootMargin: '-1px 0px 0px 0px' }
+  );
+  observer.observe(wrap);
+})();
 
 /* ============================================================
    OUTBOUND URL + UTM
