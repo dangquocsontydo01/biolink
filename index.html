@@ -942,6 +942,149 @@ html[data-theme="light"] {
   padding: 2px 7px;
   border-radius: 6px;
 }
+
+/* ============================================================
+   SHARE BOTTOM SHEET
+   ============================================================ */
+.share-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.52);
+  z-index: 500;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s ease;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.share-overlay.open { opacity: 1; pointer-events: auto; }
+.share-sheet {
+  background: var(--surface);
+  border-radius: 24px 24px 0 0;
+  padding: 0 20px 40px;
+  width: 100%;
+  max-width: 560px;
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.2,.8,.2,1);
+}
+.share-overlay.open .share-sheet { transform: translateY(0); }
+.share-handle {
+  width: 38px; height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  margin: 12px auto 20px;
+}
+.share-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.share-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+}
+.share-close-btn {
+  background: var(--bg-pattern);
+  border: none; border-radius: 50%;
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--ink-mute);
+  font-size: 14px; font-family: inherit;
+  transition: background .15s ease;
+}
+.share-close-btn:hover { background: var(--line); color: var(--ink); }
+
+.share-copy-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--ink-mute);
+  margin-bottom: 8px;
+}
+.share-copy-row { display: flex; gap: 8px; margin-bottom: 24px; }
+.share-link-input {
+  flex: 1;
+  background: var(--bg-pattern);
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  font-family: inherit;
+  outline: none;
+  min-width: 0;
+}
+.share-link-input:focus { border-color: var(--coral); }
+.share-copy-btn {
+  padding: 10px 18px;
+  background: var(--coral);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.share-copy-btn:hover { background: var(--coral-deep); }
+.share-copy-btn.copied { background: #1a7a4a; }
+
+.share-platforms-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--ink-mute);
+  margin-bottom: 12px;
+}
+.share-platforms {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+@media (max-width: 360px) { .share-platforms { grid-template-columns: repeat(4, 1fr); } }
+.share-platform {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  text-decoration: none;
+  color: var(--ink);
+  padding: 14px 6px 12px;
+  border-radius: 16px;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  transition: all .18s ease;
+  cursor: pointer;
+  font-family: inherit;
+}
+.share-platform:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,0,0,.1);
+  border-color: var(--coral);
+}
+.share-platform-icon {
+  width: 44px; height: 44px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+}
+.share-platform-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-align: center;
+  line-height: 1.2;
+}
 </style>
 </head>
 
@@ -962,6 +1105,24 @@ html[data-theme="light"] {
     <img id="qrImg" class="qr-img" alt="QR Code" src="" loading="lazy">
     <div class="qr-url" id="qrUrl"></div>
     <button class="qr-close-btn" id="qrCloseBtn">Đóng</button>
+  </div>
+</div>
+
+<!-- SHARE BOTTOM SHEET -->
+<div class="share-overlay" id="shareOverlay">
+  <div class="share-sheet" id="shareSheet">
+    <div class="share-handle"></div>
+    <div class="share-header">
+      <div class="share-title">🔗 Chia sẻ trang của tôi</div>
+      <button class="share-close-btn" id="shareCloseBtn">×</button>
+    </div>
+    <div class="share-copy-label">Link có theo dõi</div>
+    <div class="share-copy-row">
+      <input id="shareLinkInput" class="share-link-input" readonly>
+      <button id="shareCopyBtn" class="share-copy-btn">Copy</button>
+    </div>
+    <div class="share-platforms-label">Chia sẻ lên mạng xã hội</div>
+    <div class="share-platforms" id="sharePlatforms"></div>
   </div>
 </div>
 
@@ -1615,27 +1776,107 @@ window.showStats = function() {
   const row = document.getElementById('shareRow');
   if (!row) return;
 
-  // Share button
-  const shareBtn = document.createElement('button');
-  shareBtn.className = 'share-btn';
-  const SHARE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`;
-  shareBtn.innerHTML = `${SHARE_ICON} Chia sẻ`;
-  shareBtn.addEventListener('click', async () => {
-    const url = location.origin + location.pathname;
-    if (navigator.share) {
-      try { await navigator.share({ title: CONFIG.profile.name, url }); } catch {}
-    } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        shareBtn.innerHTML = `✓ Đã copy link!`;
-        setTimeout(() => { shareBtn.innerHTML = `${SHARE_ICON} Chia sẻ`; }, 2200);
-      } catch {
-        prompt('Copy link này:', url);
-      }
-    }
+  const baseUrl = location.origin + location.pathname;
+  const enc = encodeURIComponent;
+  const title = encodeURIComponent(CONFIG.profile.name + ' — Săn deal Shopee mỗi ngày');
+
+  const PLATFORMS = [
+    {
+      name: 'Facebook',
+      icon: '\uD83D\uDFE6',
+      bg: '#E7F0FF',
+      shareUrl: `https://www.facebook.com/sharer/sharer.php?u=${enc(baseUrl + '?ref=facebook')}`,
+      ref: 'facebook',
+    },
+    {
+      name: 'Telegram',
+      icon: '\u2708\uFE0F',
+      bg: '#E3F4FF',
+      shareUrl: `https://t.me/share/url?url=${enc(baseUrl + '?ref=telegram')}&text=${title}`,
+      ref: 'telegram',
+    },
+    {
+      name: 'Zalo',
+      icon: '\uD83D\uDCAC',
+      bg: '#E3EDFF',
+      shareUrl: `https://zalo.me/share?url=${enc(baseUrl + '?ref=zalo')}`,
+      ref: 'zalo',
+    },
+    {
+      name: 'Twitter',
+      icon: '\uD83D\uDC26',
+      bg: '#F0F0F0',
+      shareUrl: `https://twitter.com/intent/tweet?url=${enc(baseUrl + '?ref=twitter')}&text=${title}`,
+      ref: 'twitter',
+    },
+    {
+      name: 'WhatsApp',
+      icon: '\uD83D\uDCF2',
+      bg: '#E3FFE8',
+      shareUrl: `https://wa.me/?text=${title}%20${enc(baseUrl + '?ref=whatsapp')}`,
+      ref: 'whatsapp',
+    },
+  ];
+
+  // ── Render platforms in modal ──
+  const platformsEl = document.getElementById('sharePlatforms');
+  PLATFORMS.forEach(p => {
+    const btn = document.createElement('a');
+    btn.className = 'share-platform';
+    btn.href = p.shareUrl;
+    btn.target = '_blank';
+    btn.rel = 'noopener noreferrer';
+    btn.innerHTML = `
+      <div class="share-platform-icon" style="background:${p.bg}">${p.icon}</div>
+      <span class="share-platform-name">${p.name}</span>
+    `;
+    btn.addEventListener('click', () => track('share', p.name, baseUrl));
+    platformsEl.appendChild(btn);
   });
 
-  // QR button
+  // ── Copy button ──
+  const input = document.getElementById('shareLinkInput');
+  const copyBtn = document.getElementById('shareCopyBtn');
+  const refUrl = baseUrl + '?ref=shared';
+  if (input) input.value = refUrl;
+
+  copyBtn?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(refUrl);
+    } catch {
+      input.select();
+      document.execCommand('copy');
+    }
+    copyBtn.textContent = '\u2713 Đã copy!';
+    copyBtn.classList.add('copied');
+    setTimeout(() => {
+      copyBtn.textContent = 'Copy';
+      copyBtn.classList.remove('copied');
+    }, 2500);
+  });
+
+  // ── Open / close modal ──
+  const overlay = document.getElementById('shareOverlay');
+  function openShare() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeShare() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.getElementById('shareCloseBtn')?.addEventListener('click', closeShare);
+  overlay?.addEventListener('click', e => { if (e.target === overlay) closeShare(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeShare(); });
+
+  // ── Share button in profile ──
+  const SHARE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`;
+  const shareBtn = document.createElement('button');
+  shareBtn.className = 'share-btn';
+  shareBtn.innerHTML = `${SHARE_ICON} Chia sẻ`;
+  shareBtn.addEventListener('click', openShare);
+
+  // ── QR button in profile ──
   const qrBtn = document.createElement('button');
   qrBtn.className = 'share-btn';
   qrBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="3" height="3" rx="0.5"/><rect x="18" y="14" width="3" height="3" rx="0.5"/><rect x="14" y="18" width="3" height="3" rx="0.5"/><rect x="18" y="18" width="3" height="3" rx="0.5"/></svg> QR Code`;
