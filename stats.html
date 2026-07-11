@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📊 Stats Dashboard — Sơn's Pick</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FBF7F2; --surface: #fff; --ink: #2A1F2D; --ink-soft: #6B5F6E;
+  --ink-mute: #A39AA6; --line: #EFE7DC; --coral: #FF6B5C; --coral-deep: #E84C3D;
+  --gold: #E8B547; --mint: #6FCAB0;
+  --radius: 16px;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #1A1419; --surface: #251C24; --ink: #F4ECEF; --ink-soft: #B5A8B0; --ink-mute: #7A6F77; --line: #332631; }
+}
+html[data-theme="dark"] { --bg: #1A1419; --surface: #251C24; --ink: #F4ECEF; --ink-soft: #B5A8B0; --ink-mute: #7A6F77; --line: #332631; }
+html[data-theme="light"] { --bg: #FBF7F2; --surface: #fff; --ink: #2A1F2D; --ink-soft: #6B5F6E; --ink-mute: #A39AA6; --line: #EFE7DC; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Be Vietnam Pro', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; padding: 0 0 60px; }
+
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.header-title { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 20px; }
+.header-actions { display: flex; gap: 8px; }
+.btn {
+  padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink-soft);
+  cursor: pointer; font-family: inherit; transition: all .15s ease;
+}
+.btn:hover { border-color: var(--coral); color: var(--coral-deep); }
+.btn.danger:hover { border-color: #dc2626; color: #dc2626; }
+
+.shell { max-width: 700px; margin: 0 auto; padding: 24px 20px; }
+
+.summary-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 28px; }
+@media (max-width: 480px) { .summary-grid { grid-template-columns: 1fr 1fr; } }
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+.stat-card .val { font-family: 'Bricolage Grotesque', sans-serif; font-size: 28px; font-weight: 800; color: var(--coral-deep); }
+.stat-card .lbl { font-size: 12px; color: var(--ink-mute); font-weight: 500; margin-top: 4px; }
+
+.section-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700; font-size: 15px; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.table-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; }
+table { width: 100%; border-collapse: collapse; }
+th { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-mute); padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line); background: var(--bg); }
+td { padding: 11px 14px; font-size: 13.5px; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,107,92,.04); }
+.rank { font-weight: 800; color: var(--ink-mute); font-size: 12px; width: 32px; }
+.rank.top { color: var(--gold); }
+.click-bar-wrap { display: flex; align-items: center; gap: 8px; }
+.click-bar { height: 6px; border-radius: 3px; background: var(--coral); opacity: .7; min-width: 4px; }
+.click-count { font-weight: 700; color: var(--coral-deep); font-family: 'Bricolage Grotesque', sans-serif; font-size: 15px; white-space: nowrap; }
+.type-pill { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 6px; text-transform: uppercase; }
+.type-link { background: rgba(255,107,92,.1); color: var(--coral-deep); }
+.type-social { background: rgba(111,202,176,.15); color: #2A8A6E; }
+.type-featured { background: rgba(232,181,71,.15); color: #A87410; }
+
+.empty { text-align: center; padding: 48px 20px; color: var(--ink-mute); font-size: 14px; }
+.empty .emoji { font-size: 40px; display: block; margin-bottom: 10px; }
+
+.back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-soft); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 20px; }
+.back-link:hover { color: var(--coral); }
+
+#themeToggle {
+  background: none; border: 1.5px solid var(--line); border-radius: 8px;
+  padding: 6px 10px; cursor: pointer; font-size: 16px; font-family: inherit;
+  color: var(--ink); transition: all .15s ease;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">📊 Stats Dashboard</div>
+  <div class="header-actions">
+    <button id="themeToggle" title="Đổi giao diện">🌙</button>
+    <button class="btn" id="refreshBtn">🔄 Làm mới</button>
+    <button class="btn danger" id="clearBtn">🗑️ Xoá data</button>
+  </div>
+</div>
+
+<div class="shell">
+  <a class="back-link" href="index.html">← Về trang chính</a>
+
+  <div class="summary-grid" id="summaryGrid"></div>
+
+  <div class="section-title">🔗 Link sản phẩm</div>
+  <div class="table-wrap"><table id="linkTable"><thead><tr><th>#</th><th>Tên</th><th>Lượt click</th></tr></thead><tbody id="linkBody"></tbody></table></div>
+
+  <div class="section-title">📢 Social & Nguồn khác</div>
+  <div class="table-wrap"><table id="socialTable"><thead><tr><th>#</th><th>Nguồn</th><th>Loại</th><th>Lượt click</th></tr></thead><tbody id="socialBody"></tbody></table></div>
+</div>
+
+<script>
+// ── Dark/Light ──
+(function() {
+  const btn = document.getElementById('themeToggle');
+  const saved = localStorage.getItem('bl_theme');
+  if (saved) { document.documentElement.setAttribute('data-theme', saved); btn.textContent = saved === 'dark' ? '☀️' : '🌙'; }
+  else { btn.textContent = matchMedia('(prefers-color-scheme: dark)').matches ? '☀️' : '🌙'; }
+  btn.addEventListener('click', () => {
+    const curr = document.documentElement.getAttribute('data-theme');
+    const isDark = curr === 'dark' || (!curr && matchMedia('(prefers-color-scheme: dark)').matches);
+    const next = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('bl_theme', next);
+    btn.textContent = next === 'dark' ? '☀️' : '🌙';
+  });
+})();
+
+function loadData() {
+  return JSON.parse(localStorage.getItem('bl_clicks') || '{}');
+}
+
+function renderAll() {
+  const raw = loadData();
+  const entries = Object.entries(raw).map(([k, v]) => {
+    const idx = k.indexOf('::');
+    return { type: k.slice(0, idx), name: k.slice(idx + 2), clicks: v };
+  }).sort((a, b) => b.clicks - a.clicks);
+
+  const total = entries.reduce((s, e) => s + e.clicks, 0);
+  const links = entries.filter(e => e.type === 'link');
+  const others = entries.filter(e => e.type !== 'link');
+  const maxClicks = entries[0]?.clicks || 1;
+
+  // Summary
+  const sg = document.getElementById('summaryGrid');
+  sg.innerHTML = `
+    <div class="stat-card"><div class="val">${total}</div><div class="lbl">Tổng lượt click</div></div>
+    <div class="stat-card"><div class="val">${links.length}</div><div class="lbl">Link sản phẩm</div></div>
+    <div class="stat-card"><div class="val">${links[0]?.clicks || 0}</div><div class="lbl">Click cao nhất</div></div>
+  `;
+
+  // Links table
+  const lb = document.getElementById('linkBody');
+  if (links.length === 0) {
+    lb.innerHTML = `<tr><td colspan="3" class="empty"><span class="emoji">🛍️</span>Chưa có lượt click nào.<br>Hãy chia sẻ trang để thu thập dữ liệu!</td></tr>`;
+  } else {
+    lb.innerHTML = links.map((e, i) => `
+      <tr>
+        <td class="rank ${i < 3 ? 'top' : ''}">${['🥇','🥈','🥉'][i] || (i+1)}</td>
+        <td style="max-width:260px">${e.name}</td>
+        <td>
+          <div class="click-bar-wrap">
+            <div class="click-bar" style="width:${Math.round(e.clicks/maxClicks*120)}px"></div>
+            <span class="click-count">${e.clicks}</span>
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  // Others table
+  const sb = document.getElementById('socialBody');
+  if (others.length === 0) {
+    sb.innerHTML = `<tr><td colspan="4" class="empty"><span class="emoji">📢</span>Chưa có dữ liệu social.</td></tr>`;
+  } else {
+    sb.innerHTML = others.map((e, i) => `
+      <tr>
+        <td class="rank">${i+1}</td>
+        <td>${e.name}</td>
+        <td><span class="type-pill type-${e.type}">${e.type}</span></td>
+        <td><span class="click-count">${e.clicks}</span></td>
+      </tr>`).join('');
+  }
+}
+
+document.getElementById('refreshBtn').addEventListener('click', renderAll);
+document.getElementById('clearBtn').addEventListener('click', () => {
+  if (confirm('⚠️ Xoá toàn bộ dữ liệu click? Không thể khôi phục!')) {
+    localStorage.removeItem('bl_clicks');
+    renderAll();
+  }
+});
+
+renderAll();
+</script>
+</body>
+</html>
