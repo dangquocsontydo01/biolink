@@ -1686,22 +1686,6 @@ window.showStats = function() {
 };
 
 /* ============================================================
-   GOOGLE ANALYTICS 4 (nạp động nếu có ga4Id)
-   ============================================================ */
-(function initGA4() {
-  const id = CONFIG.analytics?.ga4Id;
-  if (!id) return;
-  const s = document.createElement('script');
-  s.async = true;
-  s.src = `https://www.googletagmanager.com/gtag/js?id=${id}`;
-  document.head.appendChild(s);
-  window.dataLayer = window.dataLayer || [];
-  window.gtag = function(){ dataLayer.push(arguments); };
-  gtag('js', new Date());
-  gtag('config', id);
-})();
-
-/* ============================================================
    ANNOUNCEMENT BAR
    ============================================================ */
 (function initAnnounce() {
